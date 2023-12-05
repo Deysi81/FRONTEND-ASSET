@@ -28,7 +28,8 @@ import {
   tableCellClasses,
   TablePagination,
   TextField,
-  InputAdornment
+  InputAdornment,
+  DialogActions
 } from '@mui/material'
 
 import SidebarEditEntrega from '../../components/EntregaDeActivos/editentrega';
@@ -100,7 +101,7 @@ const AssetList: React.FC = () => {
   const { mode } = settings
   const [expandedRows, setExpandedRows] = useState<string[]>([]);
   const handleClickOpen = () => setOpen(true)
-  const handleClose = () => setOpen(false)
+  const [deleteAssetId, setDeleteAssetId] = useState<string | null>(null);
 
   const theme = useTheme();
 
@@ -145,12 +146,27 @@ const AssetList: React.FC = () => {
   } = useAsset();
 
   const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState<boolean>(false)
-  const [userIdToDelete, setUserIdToDelete] = useState<string>('')
   const [isSidebarEditOpen, setIsSidebarEditOpen] = useState(false);
-  const handleDelete = async (id: string) => {
-    // const assetIds = [...new Set([id, ...selectedRows])].flat();
-    setUserIdToDelete(id)
-  }
+  const handleClose = () => {
+    setOpen(false);
+    setIsDeleteConfirmationOpen(false);
+  };
+
+  const handleDeleteCancelled = () => {
+    setIsDeleteConfirmationOpen(false);
+  };
+
+  const handleDelete = (assetId: string) => {
+    setDeleteAssetId(assetId);
+    setIsDeleteConfirmationOpen(true);
+  };
+  const handleDeleteConfirmed = async () => {
+    if (deleteAssetId) {
+      await deleteAsset(deleteAssetId);
+      handleClose();
+      setDeleteAssetId(null);
+    }
+  };
  const generatePdf = async (id:string)=>{
     generatenewPdf(id)
 
@@ -183,11 +199,11 @@ const AssetList: React.FC = () => {
     fontFamily: 'Roboto, Arial, sans-serif'
   }
   const headeresti: CSSProperties = {
-    fontFamily: 'Roboto, Arial, sans-serif',
+    // fontFamily: 'Roboto, Arial, sans-serif',
     fontSize: '13px',
     color:'white' ,
     borderRight: ' 2px solid rgba(224, 224, 224, 9)',
-    //  borderBottom: '1px solid rgba(224, 224, 224, 1)',
+    borderBottom: '1px solid rgba(224, 224, 224, 1)',
      boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.05)'
 
   }
@@ -222,121 +238,58 @@ const FilterPersonalRecibido=((e:ChangeEvent<HTMLInputElement>)=>{
   setreceiverId(e.target.value);
 
 })
-//  const handlePrint = () => {
-//         // Crear un nuevo documento PDF
-//         const doc = new jsPDF({
-//           orientation: 'portrait', // Cambiar la orientación a portrait
-//           unit: 'cm',
-//           format: [4, 4],
-//         });
-
-//         // Tamaño de página inicial (4x4 cm)
-//         const pageSize = { width: 4, height: 4 };
-//         let firstPage = true;
-
-//         // Iterar a través de los elementos res y agregar códigos QR al PDF
-//         delivery.map((provider, index) => ( // Iterate over providers
-//                     `<div key="${index}">${provider.asset.map((asset) => asset.code).join(', ')}</div>` // Access asset property for each provider
-//                   )).join('')
-
-//           // Calcular el tamaño del código QR en función del espacio disponible en la página
-//           const qrWidth = pageSize.width - 0; // Deja un margen de 1 cm
-//           const qrHeight = pageSize.height - 1; // Deja un margen de 1 cm
-//           const textPositionX = 1; // Posición X del texto
-//           const textPositionY = 0.5; // Posición Y del texto
-
-//           // Centrar el código QR en la página
-//           const qrX = (pageSize.width - qrWidth) / 2;
-//           const qrY = (pageSize.height - qrHeight) / 2;
-
-//           // Añadir el código QR centrado en la página
-//           doc.addImage(res , 'PNG', qrX, qrY, qrWidth, qrHeight);
-
-//           const fontSize = 8; // Tamaño de fuente pequeño
-//           doc.setFontSize(fontSize);
-//           // Añadir el texto encima del código QR
-//           doc.text(textPositionX, textPositionY, item.code);
-
-//           // Ajustar el tamaño de página para la siguiente página
-//           if (index < res.length - 1) {
-//             pageSize.width = 4; // Mantener el ancho
-//             pageSize.height = 4; // Mantener la altura
-//           }
-//         });
-
-//         // Guardar o abrir el PDF
-//         doc.save('codigos_qr.pdf');
-//       };
-
 
 //IMPRIMIR EL QR
-
 const handlePrint = () => {
-  const printWindow = window.open('', '', 'width=600,height=600');
-  if (printWindow) {
-    printWindow.document.open();
-    printWindow.document.write(`
-      <html>
-      <head>
-        <title>Imprimir Código QR</title>
-        <style>
-        @media print {
-          body {
-            margin: 0;
-            padding: 0;
-            max-width: 100%;
-            max-height: 100%;
-            page-break-after: auto;
-          }
-          img {
-            max-width: 100%;
-            max-height: 100%;
-            width: auto;
-            height: auto;
-          }
-        }
-      </style>
-      </head>
-      <body>
-        <div style="text-align: center;">
-          ${delivery.map((provider, index) => ( // Iterate over providers
-            `<div key="${index}">${provider.asset.map((asset) => asset.code).join(', ')}</div>` // Access asset property for each provider
-          )).join('')} <!-- Close provider.map and join the HTML strings -->
-        </div>
-        <div style="text-align: center;">
-        <img src="${res}" alt="Código QR" />
-        </div>
-        <script>
-        window.onload = function() {
-          setTimeout(function() {
-            window.print();
-            window.onafterprint = function() {
-              window.close();
-            }
-          }, 1000); // Agrega un retraso de 1 segundo (ajusta según sea necesario)
-        }
-      </script>
-      </body>
-      </html>
-    `);
-    printWindow.document.close();
-  } else {
-    console.error("No se pudo abrir la ventana de impresión.");
+  if (res) {
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'cm',
+      format: [4, 4],
+    });
+
+    const pageSize = { width: 4, height: 4 };
+
+    const qrWidth = pageSize.width - 1; // Deja un margen de 1 cm
+    const qrHeight = pageSize.height - 1;
+    const textPositionX = 1; // Posición X del texto
+    const textPositionY = 0.5;
+
+    const qrX = (pageSize.width - qrWidth) / 2;
+    const qrY = (pageSize.height - qrHeight) / 2;
+
+    // Añadir el código QR centrado en la página
+    doc.addImage(res, 'PNG', qrX, qrY, qrWidth, qrHeight);
+
+    const fontSize = 8; // Tamaño de fuente pequeño
+    doc.setFontSize(fontSize);
+
+    // // Añadir el texto encima del código QR
+    // doc.text(textPositionX, textPositionY, res);
+
+
+    doc.save('codigos_qr.pdf');
   }
 };
+
+const handlePageChange=(event:React.MouseEvent<HTMLButtonElement>|null,newPage:number)=>{
+
+  console.log("habdlePageChange",newPage)
+  setPage(newPage)
+}
   return (
     <>
       <TableContainer component={Paper}>
         <Table sx={{ minWidth: 650 }} aria-label='simple table'>
           <TableHead style={headerStyle}>
             <TableRow sx={{ '& .MuiTableCell-root': { py: (theme: { spacing: (arg0: number) => any; }) => `${theme.spacing(3.9)} !important` } }}>
-                <TableCell style={{fontFamily: 'Roboto, Arial, sans-serif',fontSize: '13px', width: '190px',color:'white' }}>Acciones </TableCell>
+                <TableCell style={{fontSize: '13px', width: '190px',color:'white',borderBottom: '1px solid rgba(224, 224, 224, 1)' }}>Acciones </TableCell>
                 <TableCell style={headeresti}> </TableCell>
-                <TableCell style={headeresti}sx={{width:'200px'}}>Usuario que entrega</TableCell>
-                <TableCell style={headeresti}sx={{width:'200px'}}>Usuario que recibe </TableCell>
+                <TableCell style={headeresti}sx={{width:'200px'}}>Responsable_de_Entrega</TableCell>
+                <TableCell style={headeresti}sx={{width:'200px'}}>Responsable_de_Recepción</TableCell>
                 <TableCell style={headeresti}sx={{width:'200px'}}>Ubicacion </TableCell>
                 <TableCell style={headeresti} sx={{width:'150px'}}>Activos </TableCell>
-                <TableCell style={{fontFamily: 'Roboto, Arial, sans-serif', fontSize: '13px',color:'white'}}>Actas </TableCell>
+                <TableCell style={{fontFamily: 'Roboto, Arial, sans-serif', fontSize: '13px',color:'white',borderBottom: '1px solid rgba(224, 224, 224, 1)'}}>Actas </TableCell>
             </TableRow>
           </TableHead>
 {/* //FILTROS */}
@@ -417,7 +370,7 @@ const handlePrint = () => {
                     <ul style={{ listStyleType: 'none', padding: 0 }}>
                       <li style={{ marginTop: '10px' }}>
 
-                      {findPermission('ACTIVO_VER_PDF')?(
+                      {findPermission('ACTIVO_ENTREGA_PDF_ACT')?(
                         <Button size='small' variant='contained'
                         style={{
                           color: '#fff', // Cambia el color del texto
@@ -433,7 +386,7 @@ const handlePrint = () => {
 
                       </li>
                       <li style={{ marginTop: '10px' }}>
-                      {findPermission('ACTIVO_VER_QR')?(
+                      {findPermission('ACTIVO_ENTREGA_QR_ACT')?(
                           <Button size='small' variant='contained'
                           style={{
                             color: '#fff', // Cambia el color del texto
@@ -572,9 +525,24 @@ const handlePrint = () => {
               </TableCell>
             </TableRow>
           </TableBody>
-          )
+          ) }
+           <Dialog open={isDeleteConfirmationOpen} onClose={handleClose}>
+                  <DialogTitle>Confirmar eliminación</DialogTitle>
+                  <DialogContent>
+                    <DialogContentText>
+                      ¿Estás seguro que deseas eliminar esta Entrega
+                    </DialogContentText>
+                  </DialogContent>
+                  <DialogActions>
+                    <Button onClick={handleDeleteCancelled} color="primary">
+                      Cancelar
+                    </Button>
+                    <Button onClick={handleDeleteConfirmed} color="primary">
+                      Eliminar
+                    </Button>
+                  </DialogActions>
+                </Dialog>
 
-          }
         </Table>
       </TableContainer>
       <TablePagination
@@ -585,10 +553,7 @@ const handlePrint = () => {
           onRowsPerPageChange={handleChangeRowsPerPage}
           labelRowsPerPage="Filas por página"
           rowsPerPageOptions={[1, 5, 10, 100]}
-
-            onPageChange={(event: any, newPage: string) => {
-              setPage(parseInt(newPage)); // Asegúrate de que newPage sea un número
-            }}
+          onPageChange={handlePageChange}
         />
     </>
   )

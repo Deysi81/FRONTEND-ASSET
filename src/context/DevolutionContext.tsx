@@ -1,14 +1,19 @@
 import axios from "axios";
 import { ReactNode, createContext, useContext, useEffect, useState } from "react"
 import { useAuthContext } from "src/context/AuthContext"
+import toast from "react-hot-toast";
+import { UIContext } from "src/usecontext/ui";
 
 interface DevolutionContextProps {
   deleteAsset: (id: string) => Promise<void>;
+  handleDeleteConfirmed: (assetIds: string) => Promise<void>;
   getAsset: (id: string) => Promise<Devolution>;
   updateAsset: (item: any) => Promise<void>;
   generatenewPdf: (id:string)=>Promise<void>;
   totalAssets:any
   setlocation:any
+  settransmitterId:any
+  setreceiverId:any
   setLimit: any
   limit:any
   setPage:any
@@ -80,19 +85,39 @@ const AssetDevolution = ({ children }: AssetProviderProps) => {
   const [assets, setAsset] = useState<Devolution[]>([]);
   const [value,setValue]=useState<string>("")
   const [location,setlocation]=useState<string>("")
+  const [transmitterId,settransmitterId]=useState<string>("")
+  const [receiverId,setreceiverId]=useState<string>("")
   const [page, setPage] = useState<number>(1);
   const[limit,setLimit]=useState<number>(1)
   const [totalAssets, settotalAssets]=useState<number>()
 
+  const {getData,closeData}=useContext(UIContext)
+
   useEffect(() => {
-    (async () => {
+    if (getData) {
+      getAssets();
+      closeData();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [getData, closeData]);
+
+  useEffect(() => {
+    if(window.localStorage.getItem('token')){
       getAssets()
-    })();
-  }, [page,limit,page,location])
-  console.log(assets,'aaaaaaaaaaaaaaaaa');
+    }
+  }, [page,limit,page,location,transmitterId,receiverId,getData,closeData])
   const getAssets =async()=>{
 
     let params = {};
+    if (location) {
+      params = { ...params, location };
+    }
+    if (transmitterId) {
+      params = { ...params, transmitterId };
+    }
+    if (receiverId) {
+      params = { ...params, transmitterId };
+    }
 
     if (limit) {
       params = { ...params, limit };
@@ -112,7 +137,7 @@ const AssetDevolution = ({ children }: AssetProviderProps) => {
           })
 
           await setAsset(res.data.dataArray);
-    // await settotalAssets(res.data.totalAsset)
+          await settotalAssets(res.data.totalDevolution)
   }
 
   const deleteAsset = async (id: any) => {
@@ -126,10 +151,36 @@ const AssetDevolution = ({ children }: AssetProviderProps) => {
       if (res.status === 200) {
         setAsset(assets.filter(asset => asset._id !== id));
       }
-    } catch (error:any) {
-      alert(error.response?.data.message)
+      toast.success('DEVOLUCION ELIMINADO')
+    } catch (error: any) {
+      if (error.response) {
+        // Error in the server response
+        const errorMessage = error.response.data.message || 'Error en el servidor';
+        toast.error(`Hubo un error al eliminar la entrega:\n${errorMessage}`);
+      } else if (error.request) {
+        // Lack of response from the server
+        toast.error('No se recibió respuesta del servidor. Verifica tu conexión a Internet.');
+      } else {
+        // Error in the request
+        toast.error('Error al realizar la solicitud. Por favor, inténtalo de nuevo.');
+      }
     }
+  };
 
+  const handleDeleteConfirmed = async (assetId: string) => {
+    try {
+        const res = await axios.delete(`${process.env.NEXT_PUBLIC_API_ACTIVOS}devolution/${assetId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+      if (res.status === 200) {
+        setAsset(assets.filter(asset => asset._id !== assetId));
+      }
+    }catch (error: any) {
+      alert(error.response?.data.message);
+    }
   };
 
 
@@ -202,10 +253,13 @@ console.log([newFields.assetIds])
         limit,
         setlocation,
         setPage,
+        settransmitterId,
+        setreceiverId,
         page,
         totalAssets,
         assets,
         deleteAsset,
+        handleDeleteConfirmed,
         getAsset,
         updateAsset,
         generatenewPdf,

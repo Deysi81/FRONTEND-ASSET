@@ -25,7 +25,6 @@ import { CardStatsType } from 'src/@fake-db/types'
 import { ThemeColor } from 'src/@core/layouts/types'
 
 // ** Custom Table Components Imports
-import TableHeader from 'src/components/Bitacora/TableHeader'
 
 
 interface UserStatusType {

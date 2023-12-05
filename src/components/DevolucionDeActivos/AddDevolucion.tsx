@@ -282,13 +282,13 @@ const SidebarAddDesignar = (props: SidebarDevolutionAssetProps) => {
   const getState = async () => {
 
     try {
-      const response = await axios.get<state[]>(`${process.env.NEXT_PUBLIC_API_ACTIVOS}state`,{
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_ACTIVOS}state`,{
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       })
-       setGroupState(response.data)
+       setGroupState(response.data.State)
     } catch (error) {
       console.error(error)
     }

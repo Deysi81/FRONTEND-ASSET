@@ -79,8 +79,8 @@ const AuthProvider = ({ children }: Props) => {
     //   id=dataIdToken.id as string
     //   token=dataIdToken.token as string
     // }
-    const id=router.query.id
-    const token=router.query.token
+    const id=router.query.id?.toString()
+    const token=router.query.token?.toString()
 
 
     console.log("id",id as string)
@@ -100,13 +100,14 @@ const AuthProvider = ({ children }: Props) => {
             // router.push(`${process.env.NEXT_PUBLIC_URL_CENTRAL}/login`)
           }
           console.log('errorrrrrrrrrrr',id)
-          localStorage.setItem('token', res.data)
+          // localStorage.setItem('token', res.data)
 
 
 
 
 
-          router.replace('http://localhost:5000/home/')
+          //router.replace('http://10.10.214.51:5000/home/')
+          router.replace('http://10.10.214.52:5000/home/')
 
           setAccessToken(res.data)
           saveSessionInfo(res.data)
@@ -117,20 +118,20 @@ const AuthProvider = ({ children }: Props) => {
 
 
 
-       const permissions = async (token: string) => {
+      const permissions = async (token: string) => {
         try {
           console.log("permissions: ",token)
           console.log('auth/decoded')
 
           window.localStorage.setItem('TokenLogin', token)
           // const response = await axios.post(`${process.env.NEXT_PUBLIC_API_CENTRAL}auth/decoded`, {
-            const response = await axios.post(`${process.env.NEXT_PUBLIC_URL_CENTRAL_DECO}auth/decoded`, {
+            const response = await axios.post(`${process.env.NEXT_PUBLIC_URL_API_CENTRAL}auth/decoded`, {
             token: token
           })
           console.log('decoded token login roles: ' + response.data.id)
 
           const id = response.data.id
-          window.localStorage.setItem('id', id)
+          window.localStorage.setItem('id', id as string)
 
           console.log('roles: ', response.data.roles)
 
@@ -148,7 +149,7 @@ const AuthProvider = ({ children }: Props) => {
                 console.log('auth/decoded')
                 const respon = await axios.get(
               //  `${process.env.NEXT_PUBLIC_API_CENTRAL}permission/${response.data.roles[j].permissionName[i]}`
-              `${process.env.NEXT_PUBLIC_URL_CENTRAL_DECO}permission/${response.data.roles[j].permissionName[i]}`
+              `${process.env.NEXT_PUBLIC_URL_API_CENTRAL}permission/${response.data.roles[j].permissionName[i]}`
                 )
                 const activo=respon.data.permissionName.split('_')
                 if(activo[0]==="ACTIVO")
@@ -163,12 +164,13 @@ const AuthProvider = ({ children }: Props) => {
           }
 
           const arrayPermisos = JSON.stringify(permisosLista)
-          window.localStorage.setItem('permisos', arrayPermisos)
+          // window.localStorage.setItem('permisos', arrayPermisos)
           console.log('permisos' + arrayPermisos)
         } catch (error) {
           console.log(error)
         }
       }
+
       permissions(token as string)
     }else{
       // console.log(id, token)
@@ -180,12 +182,14 @@ const AuthProvider = ({ children }: Props) => {
         await saveSessionInfo(token);
       }
     }
+    console.log("id",id as string)
+    console.log("token",token as string)
   }
 
 
   const saveSessionInfo = async(token: string) => {
       try {
-         const res = await axios.post(`${process.env.NEXT_PUBLIC_URL_CENTRAL_DECO}auth/decoded`,{token:token})
+         const res = await axios.post(`${process.env.NEXT_PUBLIC_URL_API_CENTRAL}auth/decoded`,{token:token})
         //const res = await axios.post(`http://10.10.214.151:3110/auth/decoded`,{token})<
         const userInfo = await getUserInfo(res.data.idUser)
         setUsers(userInfo)
@@ -197,6 +201,7 @@ const AuthProvider = ({ children }: Props) => {
 
   const getUserInfo = async(id:string) => {
     const res = await axios.get(`${process.env.NEXT_PUBLIC_URL_PERSONAL}api/personal/${id}`)
+    //  const res = await axios.get(`${process.env.NEXT_PUBLIC_API_ACTIVOS}personal/${id}`)
     //const res = await axios.get(`http://10.10.214.151:4200/personal}${id}`)
 
     return res.data
@@ -227,7 +232,7 @@ const AuthProvider = ({ children }: Props) => {
     window.localStorage.removeItem('userData')
     window.localStorage.removeItem(authConfig.storageTokenKeyName)
     // router.push('/login')
-    router.push(`${process.env.NEXT_PUBLIC_URL_CENTRAL}/login`)
+    router.push(`${process.env.NEXT_PUBLIC_URL_CENTRAL}/login/logout`)
   }
 
   const handleRegister = (params: RegisterParams, errorCallback?: ErrCallbackType) => {

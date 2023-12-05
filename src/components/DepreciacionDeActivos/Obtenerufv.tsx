@@ -59,7 +59,7 @@ const Obtenerufv: React.FC = () => {
       setUfvData(res.data);
     } catch (error) {
       console.error('Error al obtener la UFV:', error);
-      setError('Hubo un error al obtener la UFV. Por favor, inténtalo de nuevo más tarde.');
+      setError('Hubo_Un_Error_Al_Obtener_La_UFV_Inténtalo _De_Nuevo.Más_Tarde.');
     }
   };
 
@@ -83,7 +83,7 @@ const Obtenerufv: React.FC = () => {
 
               position: 'absolute',
 
-              top: 73,
+              top: 80,
               right: 50,
               mb:'17px',
             }} variant="body2"style={headerStyle}
@@ -96,7 +96,7 @@ const Obtenerufv: React.FC = () => {
           backgroundColor: '#D4D5D5',
           position: 'absolute',
           // width:'300px',
-          top: 80,
+          top: 87,
           right: 75,
         }}
       >

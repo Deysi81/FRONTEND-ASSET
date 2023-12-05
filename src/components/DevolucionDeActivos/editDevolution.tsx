@@ -25,6 +25,7 @@ import Icon from 'src/@core/components/icon'
 import axios from 'axios'
 import InputLabel from '@mui/material/InputLabel'
 import { Autocomplete, Grid, MenuItem, Select, SelectChangeEvent } from '@mui/material'
+import { findPermission } from '../findPermission'
 interface UserData {
   _id: string
   asset:AssetsDelivery[],
@@ -260,8 +261,8 @@ const SidebarEditDevolution = (props: { providerId: string }) => {
 
   const getState = async () => {
     try {
-      const response = await axios.get<state[]>(`${process.env.NEXT_PUBLIC_API_ACTIVOS}state`)
-      setGroupState(response.data)
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_ACTIVOS}state`)
+      setGroupState(response.data.State)
     } catch (error) {
       console.error(error)
     }
@@ -309,12 +310,16 @@ console.log('ocupados',groupAssetOcup)
 
   return (
     <>
-      <Button   variant="outlined" size="small"
-           style={{ color: '#94bb68', borderRadius: '10px',marginRight:'2px',marginTop: '1px',width: '1%',marginBottom:'2px' }}
+    {findPermission('ACTIVO_EDITAR_ACTIVO_ACT')?(
+          <Button   variant="outlined" size="small"
+          style={{ color: '#94bb68', borderRadius: '10px',marginRight:'2px',marginTop: '1px',width: '1%',marginBottom:'2px' }}
 
- onClick={toggleDrawer(true)}>
-        <Icon icon='mdi:pencil-outline' fontSize={18} />
-      </Button>
+onClick={toggleDrawer(true)}>
+       <Icon icon='mdi:pencil-outline' fontSize={18} />
+     </Button>
+        ):(<></>)}
+
+
       <Drawer
         open={state}
         anchor='right'

@@ -62,7 +62,8 @@ import AssetEntrega from 'src/context/entregacontext'
 import AssetSupllier from 'src/context/ProviderContext'
 import AssetContables from 'src/context/GruposContabContext'
 import AssetDevolution from 'src/context/DevolutionContext'
-import { UIContext } from 'src/usecontext/ui'
+import { UIContext, UIProvider } from 'src/usecontext/ui'
+import { store } from 'src/redux/store'
 // import { token } from './listaact'
 
 // import { jsPDF } from "jspdf";
@@ -144,7 +145,9 @@ const App = (props: ExtendedAppProps) => {
         <meta name='keywords' content='Material Design, MUI, Admin Template, React Admin Template' />
         <meta name='viewport' content='initial-scale=1, width=device-width' />
       </Head>
-{/* <UIContext > */}
+<UIProvider >
+
+
 <AssetProvider>
       <AssetEntrega >
         <AssetSupllier>
@@ -177,7 +180,7 @@ const App = (props: ExtendedAppProps) => {
         </AssetSupllier>
       </AssetEntrega>
       </AssetProvider>
-{/* </UIContext> */}
+</UIProvider>
 
     </CacheProvider>
 </AuthProvider>

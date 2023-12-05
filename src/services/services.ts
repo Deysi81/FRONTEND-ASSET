@@ -2,6 +2,8 @@ import { apiCall } from './config'
 import axios from 'axios'
 import { useRouter } from 'next/router'
 import { ParsedUrlQuery } from 'querystring'
+import { useContext } from 'react'
+import { UIContext } from 'src/usecontext/ui'
 
 export const Login = async (data: ParsedUrlQuery) => {
   const options = {
@@ -22,35 +24,50 @@ export const Login = async (data: ParsedUrlQuery) => {
 }
 
 export async function Redirect(id: string, token: string) {
+  const router = useRouter()
+  const {openData}=useContext(UIContext)
   if (id != undefined && token != undefined) {
-    const router = useRouter()
+    console.log("services")
+    console.log("id",id.toString())
+    console.log("token",token.toString())
+    // window.localStorage.setItem("id",id)
+
     const app = id
     if (app && token) {
-      try {
-        const res = await axios.post(`${process.env.NEXT_PUBLIC_URL_API_CENTRAL}`, { app, token },{
-          headers:{
-            Authorization:`Bearer ${'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZFVzZXIiOiI2NGRjZTI5Yjk2ODMxNGEzNDM5MDllNDciLCJBcHAiOnsiMCI6eyJ1dWlkIjoiM2ZmNzgxNjYtZTEyMC00NTY1LWEwOTAtZTczYTE3YTI4NzY3IiwibmFtZSI6ImFjdGl2byIsInVybCI6Imh0dHA6Ly8xMC4xMC4yMTQuMjE5OjMwNTAvaG9tZSJ9fSwicm9sZXMiOlsiNjRiODU5NzgzZjMwNTJkZjNiNzI2ODBlIl0sImlhdCI6MTY5NjYwNDQzNiwiZXhwIjoxNjk2NjE4ODM2fQ.bffw5zbQ5R3JJK_TCv6H4_X0ODWIB0cRtRCjalFMl1o'}`
-          }
-        })
+      console.log("id",id)
+      console.log("token",token)
+      window.localStorage.setItem("token",token.toString())
+      router.replace('/home/')
+      openData()
+      // try {
+      //   const res = await axios.post(`${process.env.NEXT_PUBLIC_URL_API_CENTRAL}auth/verify-app-token`, {
+      //     token:token.toString(),
+      //     app:id.toString()
+      //   }
+      //     // headers:{
+      //     //   Authorization:`Bearer ${'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZFVzZXIiOiI2NGRjZTI5Yjk2ODMxNGEzNDM5MDllNDciLCJBcHAiOnsiMCI6eyJ1dWlkIjoiM2ZmNzgxNjYtZTEyMC00NTY1LWEwOTAtZTczYTE3YTI4NzY3IiwibmFtZSI6ImFjdGl2byIsInVybCI6Imh0dHA6Ly8xMC4xMC4yMTQuMjE5OjMwNTAvaG9tZSJ9fSwicm9sZXMiOlsiNjRiODU5NzgzZjMwNTJkZjNiNzI2ODBlIl0sImlhdCI6MTY5NjYwNDQzNiwiZXhwIjoxNjk2NjE4ODM2fQ.bffw5zbQ5R3JJK_TCv6H4_X0ODWIB0cRtRCjalFMl1o'}`
+      //     // }
+      //   )
+      //   console.log("res",res.data)
 
-        localStorage.setItem('token', res.data)
-        const tokenExist = localStorage.getItem('token')
-        //router.replace('http://10.10.214.219:3050/home/')
-        router.replace('http://localhost:5000/home/')
+      //   // localStorage.setItem('token', res.data)
+      //   localStorage.setItem('token',res.data)
+      //   // //router.replace('http://10.10.214.219:3050/home/')
+      //   // router.replace('/home/')
 
-        if (!tokenExist) {
-          router.push(`${process.env.NEXT_PUBLIC_URL_CENTRAL}/login`)
-        }
+      //   // if (!window.localStorage.getItem('token')) {
+      //   //   router.push(`${process.env.NEXT_PUBLIC_URL_CENTRAL}/login`)
+      //   // }
 
-        if (res.status === 401 || res.status === 404) {
-          router.push(`${process.env.NEXT_PUBLIC_URL_CENTRAL}/login`)
-        }
-      } catch (error: any) {
-        alert(error.response.data.message)
-        router.push(`${process.env.NEXT_PUBLIC_URL_CENTRAL}/login`)
-      }
+      //   // if (res.status === 401 || res.status === 404) {
+      //   //   router.push(`${process.env.NEXT_PUBLIC_URL_CENTRAL}/login`)
+      //   // }
+      // } catch (error: any) {
+      //   alert(error.response.data.message)
+      //   // router.push(`${process.env.NEXT_PUBLIC_URL_CENTRAL}/login`)
+      // }
     } else {
-      router.push(`${process.env.NEXT_PUBLIC_URL_CENTRAL}/login`)
+      // router.push(`${process.env.NEXT_PUBLIC_URL_CENTRAL}/login`)
     }
   }
 }

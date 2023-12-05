@@ -22,6 +22,7 @@ import Icon from 'src/@core/components/icon'
 // ** Types Imports
 
 import axios from 'axios'
+import { useAuthContext } from 'src/context/AuthContext'
 
 interface SidebarAddUserType {
   open: boolean
@@ -91,7 +92,7 @@ const SidebarAddAssetQR = (props: SidebarAddUserType) => {
   }, [])
   console.log(asset)
 
- const token ='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZFVzZXIiOiI2NGU1MjJlMGZhYTBiZTE1ZjgyNzQxYjciLCJBcHAiOnsiMCI6eyJ1dWlkIjoiY2FiODM2MzUtM2ZlMC00OGQxLTkzMTYtOTEzYWRjOTgxYThjIiwibmFtZSI6ImNlbnRyYWwiLCJ1cmwiOiJodHRwOi8vMTAuMTAuMjE0LjIxOTozMDA1L2hvbWUifX0sInJvbGVzIjpbIjY0ZTUyMTA2ZTNhYjFmYmFkYzEwZWRmMiJdLCJpYXQiOjE2OTUwNDE0NTYsImV4cCI6MTY5NTA2MzA1Nn0.z8SbQLYwc9XZhm8xc1rsjm_EZWRMOaajPKGIsIYKwis'
+  const { accessToken:token } = useAuthContext()
   const handleSave = async (asset: UserData) => {
 
     await axios

@@ -98,6 +98,7 @@ const SidebarAddSupplier = (props: SidebarAddUserType) => {
   // ** Props
   const { open, toggle } = props
   const [asset, setAsset] = useState<UserData>({
+
     managerName: '',
     managerCi: '',
     managerPhone: 0,
@@ -193,7 +194,7 @@ const SidebarAddSupplier = (props: SidebarAddUserType) => {
       variant='temporary'
       onClose={handleClose}
       ModalProps={{ keepMounted: true }}
-      sx={{ '& .MuiDrawer-paper': { width: { xs: 400, sm: 550, lg: 700 } } }}
+      sx={{ '& .MuiDrawer-paper': { width: { xs: 600, sm: 600, lg: 700 } } }}
     >
       <Header>
         <Typography variant='h6'>Agregar Proveedor</Typography>
@@ -430,7 +431,9 @@ const SidebarAddSupplier = (props: SidebarAddUserType) => {
           </FormControl>
 
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
+
             <Button
+            variant='contained'
             size='large'
              type='submit'
              //variant='contained'
@@ -616,7 +619,7 @@ export default SidebarAddSupplier
 //   }
 
 //   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-//     setAsset({ ...asset, [e.target.name]: e.target.value })
+//     setAsset({ ...asset, [e.tar  .name]: e.target.value })
 //   }
 
 //   const handleSubmit = async (e: FormEvent) => {

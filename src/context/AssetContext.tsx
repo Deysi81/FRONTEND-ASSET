@@ -3,6 +3,8 @@ import axios from "axios";
 import React, {  createContext, useContext, useEffect, useState } from "react"
 import { useAuthContext } from "./AuthContext";
 import toast from "react-hot-toast";
+import { UIContext } from "src/usecontext/ui";
+import Swal from 'sweetalert2'
 
 interface AssetContextProps {
   deleteAsset: (assetIds: string[]) => Promise<void>;
@@ -152,12 +154,22 @@ const AssetProvider = ({ children }: AssetProviderProps) => {
   const [totalAssets,settotalAssets]=useState<number>()
   const[limit,setLimit]=useState<number>(5)
 
-  // useEffect(() => {
-  //   (async () => {
-  //     getAssets()
-  //     getStates()
-  //   })();
-  // }, [nameAsset,limit,state,typeCategoryAsset,location,page])
+  const{getData,closeData}=useContext(UIContext)
+
+  useEffect(() => {
+    if (getData) {
+      getAssets();
+      getStates()
+      closeData();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [getData, closeData]);
+
+  useEffect(() => {
+    if(window.localStorage.getItem('token')){
+      getAssets()
+    }
+  }, [nameAsset,limit,state,typeCategoryAsset,location,page,getData,closeData])
 
   const getAssets=async()=>{
     let params = {};
@@ -209,7 +221,7 @@ const AssetProvider = ({ children }: AssetProviderProps) => {
       },
     });
 
-    setStateDB(res.data)
+    setStateDB(res.data.State)
    } catch (error) {
     console.log(error)
    }
@@ -373,8 +385,13 @@ const AssetProvider = ({ children }: AssetProviderProps) => {
       if (error.response) {
         // Error en la respuesta del servidor
         const errorMessage = error.response.data.message || 'Error en el servidor';
-        toast.error(`HUBO UN ERROR AL ENTREGAR UN ACTIVO:\n${errorMessage}`);
-
+        // toast.error(`HUBO UN ERROR AL ENTREGAR UN ACTIVO:\n${errorMessage}`);
+        Swal.fire({
+          icon: "error",
+          title: "Oops...",
+          text: `HUBO UN ERROR AL ENTREGAR EL ACTIVO:\n${errorMessage}`,
+          // footer: '<a href="#">Why do I have this issue?</a>'
+        });
       } else if (error.request) {
         // Falta de respuesta del servidor
         toast.error('No se recibió respuesta del servidor. Verifica tu conexión a Internet.');
@@ -411,7 +428,7 @@ const AssetProvider = ({ children }: AssetProviderProps) => {
       if (error.response) {
         // Error en la respuesta del servidor
         const errorMessage = error.response.data.message || 'Error en el servidor';
-        toast.error(`HUBO UN ERROR AL DOLVER UN ACTIVO:\n${errorMessage}`);
+        toast.error(`HUBO UN ERROR AL DEVOLVER UN ACTIVO:\n${errorMessage}`);
 
       } else if (error.request) {
         // Falta de respuesta del servidor
@@ -447,10 +464,27 @@ const AssetProvider = ({ children }: AssetProviderProps) => {
 
       setAsset(updatedAssets);
     } catch (error:any) {
-      alert(error.response?.data.message);
+      // alert(error.response?.data.message);
+      if (error.response) {
+        // Error en la respuesta del servidor
+        const errorMessage = error.response.data.message || 'Error en el servidor';
+        // toast.error(`HUBO UN ERROR AL GENERAR EL PDF:\n${errorMessage}`);
+        Swal.fire({
+          icon: "error",
+          title: "Oops...",
+          text: `HUBO UN ERROR AL GENERAR EL PDF:\n${errorMessage}`,
+          // footer: '<a href="#">Why do I have this issue?</a>'
+        });
+
+      } else if (error.request) {
+        // Falta de respuesta del servidor
+        toast.error('No se recibió respuesta del servidor. Verifica tu conexión a Internet.');
+      } else {
+        // Error en la solicitud
+        toast.error('Error al realizar la solicitud. Por favor, inténtalo de nuevo.');
+      }
     }
   };
-
 
   return (
     <>

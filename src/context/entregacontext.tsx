@@ -1,9 +1,12 @@
 import axios from "axios";
 import { ReactNode, createContext, useContext, useEffect, useState } from "react"
+import toast from "react-hot-toast";
 import { useAuthContext } from "src/context/AuthContext"
+import { UIContext } from "src/usecontext/ui";
 
 interface EntregaContextProps {
   deleteAsset: (id: string) => Promise<void>;
+  handleDeleteConfirmed: (assetIds: string) => Promise<void>;
   getAsset: (id: string) => Promise<Entrega>;
   updateAsset: (item: any) => Promise<void>;
   generatenewPdf: (id:string)=>Promise<void>;
@@ -88,11 +91,21 @@ const AssetEntrega = ({ children }: AssetProviderProps) => {
   const[limit,setLimit]=useState<number>(1)
   const [totalAssets, settotalAssets]=useState<number>()
 
-  useEffect(() => {
-    (async () => {
+const {getData,closeData}=useContext(UIContext)
+
+    useEffect(() => {
+      if (getData) {
+        getAssets();
+        closeData();
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [getData, closeData]);
+
+     useEffect(() => {
+    if(window.localStorage.getItem('token')){
       getAssets()
-    })();
-  }, [page,limit,page,location,transmitterId,receiverId])
+    }
+  }, [page,limit,page,location,transmitterId,receiverId,getData,closeData])
 
   const getAssets =async()=>{
 
@@ -125,8 +138,9 @@ const AssetEntrega = ({ children }: AssetProviderProps) => {
             }
           })
           await setAsset(res.data.dataArray);
-    await settotalAssets(res.data.totalAsset)
+          await settotalAssets(res.data.totalDelivery)
   }
+
 
   const deleteAsset = async (id: any) => {
     try {
@@ -139,10 +153,35 @@ const AssetEntrega = ({ children }: AssetProviderProps) => {
       if (res.status === 200) {
         setAsset(assets.filter(asset => asset._id !== id));
       }
-    } catch (error:any) {
-      alert(error.response?.data.message)
+      toast.success('ENTREGA ELIMINADO')
+    } catch (error: any) {
+      if (error.response) {
+        // Error in the server response
+        const errorMessage = error.response.data.message || 'Error en el servidor';
+        toast.error(`Hubo un error al eliminar la entrega:\n${errorMessage}`);
+      } else if (error.request) {
+        // Lack of response from the server
+        toast.error('No se recibió respuesta del servidor. Verifica tu conexión a Internet.');
+      } else {
+        // Error in the request
+        toast.error('Error al realizar la solicitud. Por favor, inténtalo de nuevo.');
+      }
     }
-
+  };
+  const handleDeleteConfirmed = async (assetId: string) => {
+    try {
+        const res = await axios.delete(`${process.env.NEXT_PUBLIC_API_ACTIVOS}delivery/${assetId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+      if (res.status === 200) {
+        setAsset(assets.filter(asset => asset._id !== assetId));
+      }
+    }catch (error: any) {
+      alert(error.response?.data.message);
+    }
   };
 
 
@@ -221,6 +260,7 @@ console.log([newFields.assetIds])
         totalAssets,
         assets,
         deleteAsset,
+        handleDeleteConfirmed,
         getAsset,
         updateAsset,
         generatenewPdf,

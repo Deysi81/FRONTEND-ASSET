@@ -5,14 +5,18 @@ import React, { ChangeEvent, createContext, useContext, useEffect, useState } fr
 import { Interface } from "readline";
 import { useAuthContext } from "./AuthContext";
 import toast from "react-hot-toast";
+import { UIContext } from "src/usecontext/ui";
 
 interface AssetContextProps {
-  // deleteAsset: (id: string) => Promise<void>;
-  // handleDeleteConfirmed: (assetIds: string[]) => Promise<void>;
+  deleteAsset: (id: string) => Promise<void>;
+  handleDeleteConfirmed: (assetIds: string) => Promise<void>;
   createAsset: (itemId: UserData) => Promise<void>;
   getAsset: (id: string) => Promise<Asset>;
-  updateAsset: (item: any) => Promise<void>;
+  updateAsset: (item: string,Newfield:any) => Promise<void>;
   setnameSupplier: any
+  setbusinessAddress:any
+  setemail:any
+  setbusinessName:any
   setmanagerCi:any
   setNIT:any
   setLimit: any
@@ -21,7 +25,7 @@ interface AssetContextProps {
   setPage:any
   page:any
   totalAssets:any
-    // generatenewQR: (id:string)=>Promise<void>;
+
   assets: Asset[],
   stateDB:any;
 
@@ -63,33 +67,27 @@ interface State {
   isDeleted: boolean
 }
 
-
-
-interface InformationCountable {
-  price: number
-  dateAcquisition: string
-  warrantyExpirationDate: Date
-  lote: number
-  // code?:string
-}
-interface UserData {
-  name: string
+interface informationAsset{
+  asset: string,
   description: string
-  // responsible: string
-  supplier: string
-  file: string
-  typeCategoryAsset: string
-  informationCountable: InformationCountable
-  location: string
 }
 
+interface UserData {
+  managerName: string
+  managerCi: string
+  managerPhone: number
+  businessAddress: string
+  email: string
+  businessName: string
+  NIT: string
+  informationAsset:informationAsset[]
+}
 
 interface values{
   nameAsset: string
   offset: string
   limit: string
 }
-
 const AssetSupllier = ({ children }: AssetProviderProps) => {
 
   const { accessToken:token } = useAuthContext()
@@ -97,30 +95,49 @@ const AssetSupllier = ({ children }: AssetProviderProps) => {
 
   let [assets, setAsset] = useState<Asset[]>([]);
   const [nameSupplier,setnameSupplier]=useState<string>("")
-  const [typeCategoryAsset,settypeCategoryAsset]=useState<string>("")
+  const [businessAddress,setbusinessAddress]=useState<string>("")
+
+  const [businessName,setbusinessName]=useState<string>("")
+  const [email,setemail]=useState<string>("")
   const [managerCi,setmanagerCi]=useState<string>("")
   const [NIT,setNIT]=useState<string>("")
   const [managerPhone,setmanagerPhone]=useState<string>("")
   const [page, setPage] = useState<number>(0);
- //const [page, setPage] = useState(0);
-
   const [stateDB,setStateDB]=useState<State[]>([])
   const [totalAssets,settotalAssets]=useState<number>()
 
 const[limit,setLimit]=useState<number>(5)
+const {getData,closeData}=useContext(UIContext)
+
+
+useEffect(() => {
+  if (getData) {
+    getAssets();
+    closeData();
+  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [getData, closeData]);
 
   useEffect(() => {
-    (async () => {
+    if(window.localStorage.getItem('token')){
       getAssets()
-    })();
-  }, [nameSupplier,limit,managerPhone,managerCi,NIT,page])
+    }
+  }, [nameSupplier,businessName,email,businessAddress,limit,managerPhone,managerCi,NIT,page,getData,closeData])
 
   const getAssets=async()=>{
     let params = {};
     if (nameSupplier) {
       params = { ...params, nameSupplier };
     }
-
+    if (businessName) {
+      params = { ...params, businessName };
+    }
+    if (email) {
+      params = { ...params, email };
+    }
+    if (businessAddress) {
+      params = { ...params, businessAddress };
+    }
     if (managerCi) {
       params = { ...params, managerCi };
     }
@@ -147,9 +164,8 @@ const[limit,setLimit]=useState<number>(5)
         'Content-Type': 'application/json',
       }
     });
-    console.log(res.data,'jnkfejvaaaaaaa')
     await setAsset(res.data.suppliers);
-    await settotalAssets(res.data.totalAssets)
+    await settotalAssets(res.data.totalSupplier)
   }
 
 
@@ -162,36 +178,40 @@ const[limit,setLimit]=useState<number>(5)
             'Content-Type': 'application/json'
           }
         });
-        return res;
+        if (res.status === 200) {
+          setAsset(assets.filter(asset => asset._id !== id));
+        }
+        toast.success('GRUPO CONTABLE ELIMINADO')
+      } catch (error: any) {
+        if (error.response) {
+          // Error in the server response
+          const errorMessage = error.response.data.message || 'Error en el servidor';
+          toast.error(`Hubo un error al eliminar el grupo contable:\n${errorMessage}`);
+        } else if (error.request) {
+          // Lack of response from the server
+          toast.error('No se recibió respuesta del servidor. Verifica tu conexión a Internet.');
+        } else {
+          // Error in the request
+          toast.error('Error al realizar la solicitud. Por favor, inténtalo de nuevo.');
+        }
+      }
+    };
 
-    } catch (error: any) {
+  const handleDeleteConfirmed = async (assetId: string) => {
+    try {
+        const res = await axios.delete(`${process.env.NEXT_PUBLIC_API_ACTIVOS}supplier/${assetId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+      if (res.status === 200) {
+        setAsset(assets.filter(asset => asset._id !== assetId));
+      }
+    }catch (error: any) {
       alert(error.response?.data.message);
     }
   };
-
-  // const handleDeleteConfirmed = async (assetIds: string[]) => {
-  //   try {
-  //     const deleteRequests = assetIds.map(async (assetId) => {
-  //       const res = await axios.delete(`${process.env.NEXT_PUBLIC_API_ACTIVOS}supplier/${assetId}`, {
-  //         headers: {
-  //           Authorization: `Bearer ${token}`,
-  //           'Content-Type': 'application/json'
-  //         }
-  //       });
-  //       return res;
-  //     });
-
-  //     const responses = await Promise.all(deleteRequests);
-
-
-  //     if (responses.every((res) => res.status === 200)) {
-  //       const updatedAssets = assets.filter((asset) => !assetIds.includes(asset._id));
-  //       setAsset(updatedAssets);
-  //     }
-  //   }catch (error) {
-  //     console.error(error);
-  //   }
-  // };
 
 
 
@@ -231,7 +251,7 @@ console.log(assetData,'aaaaaaaaaa')
 
   const getAsset = async (id: string) => {
     try {
-      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_ACTIVOS}asset/${id}`,{
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_ACTIVOS}supplier/${id}`,{
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -243,31 +263,40 @@ console.log(assetData,'aaaaaaaaaa')
     }
   };
 
-  const updateAsset = async (newFields: any) => {
+  const updateAsset = async (id: string, Newfield: any) => {
     try {
 
-      const res = await axios.put(`${process.env.NEXT_PUBLIC_API_ACTIVOS}asset/batch-update`, newFields,{
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
+      const res = await axios.put(
+        `${process.env.NEXT_PUBLIC_API_ACTIVOS}supplier/update/${id}`,
+        Newfield,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
         }
-      });
+      );
       if (res !== undefined) {
-        const updatedAssets = assets.map(item => {
-          const updatedAsset = res.data.find((updatedItem: any) => updatedItem._id === item._id);
-          return updatedAsset || item;
-        });
-
-        setAsset(updatedAssets);
+        // Actualiza el estado assets
+        setAsset((prevAssets) =>
+          prevAssets.map((item) => (item._id === id ? res.data : item))
+        );
+        toast.success('Proveedor actualizado correctamente');
       }
-
-
-    } catch (error:any) {
-      alert(error.response?.data.message);
-    }
-  };
-
-
+    } catch (error: any) {
+        if (error.response) {
+          // Error in the server response
+          const errorMessage = error.response.data.message || 'Error en el servidor';
+          toast.error(`Hubo un error al editar el grupo contable:\n${errorMessage}`);
+        } else if (error.request) {
+          // Lack of response from the server
+          toast.error('No se recibió respuesta del servidor. Verifica tu conexión a Internet.');
+        } else {
+          // Error in the request
+          toast.error('Error al realizar la solicitud. Por favor, inténtalo de nuevo.');
+        }
+      }
+    };
 
   return (
     <>
@@ -279,16 +308,19 @@ console.log(assetData,'aaaaaaaaaa')
         limit,
         setmanagerPhone,
         setnameSupplier,
+        setbusinessAddress,
+        setemail,
+        setbusinessName,
         setmanagerCi,
         setNIT,
         setPage,
         page,
-        // deleteAsset,
+        deleteAsset,
         createAsset,
         getAsset,
         updateAsset,
         stateDB,
-        // handleDeleteConfirmed,
+        handleDeleteConfirmed,
       }}>
       {children}
     </assetContext.Provider>

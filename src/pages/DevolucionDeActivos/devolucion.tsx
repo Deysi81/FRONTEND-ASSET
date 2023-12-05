@@ -26,6 +26,8 @@ import {
   tableCellClasses,
   TablePagination,
   CircularProgress,
+  InputAdornment,
+  TextField,
 } from '@mui/material'
 
 import SidebarEditEntrega from '../../components/EntregaDeActivos/editentrega';
@@ -34,6 +36,8 @@ import { useSettings } from 'src/@core/hooks/useSettings'
 import { useAsset } from 'src/context/DevolutionContext'
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf'; // Icono de PDF
 import SidebarEditDevolution from 'src/components/DevolucionDeActivos/editDevolution';
+import FilterListIcon from '@mui/icons-material/FilterList';
+import { findPermission } from 'src/components/findPermission';
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
@@ -132,6 +136,7 @@ const AssetList: React.FC = () => {
 //LLAMANDO AL CONTEXTO
 
   let { assets,setlocation //,setValue
+  ,settransmitterId,setreceiverId
   ,setLimit,limit,deleteAsset,generatenewPdf,totalAssets,page,setPage
   } = useAsset();
 
@@ -174,11 +179,10 @@ const AssetList: React.FC = () => {
     fontFamily: 'Roboto, Arial, sans-serif'
   }
   const headeresti: CSSProperties = {
-    fontFamily: 'Roboto, Arial, sans-serif',
     fontSize: '13px',
     color:'white' ,
-    // borderRight: '1px solid rgba(224, 224, 224, 1)',
-    //  borderBottom: '1px solid rgba(224, 224, 224, 1)',
+    borderRight: '1px solid rgba(224, 224, 224, 1)',
+    borderBottom: '1px solid rgba(224, 224, 224, 1)',
      boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.05)'
 
   }
@@ -199,10 +203,21 @@ const AssetList: React.FC = () => {
   }
 
  //FILTRO PARA UBICACION
-const FilterUbicacion=((e:ChangeEvent<HTMLInputElement>)=>{
+ const FilterUbicacion=((e:ChangeEvent<HTMLInputElement>)=>{
   setlocation(e.target.value);
 
 })
+ //FILTRO PARA PERSONAL QUE ENTREGO
+ const FilterPeronalEntrega=((e:ChangeEvent<HTMLInputElement>)=>{
+  settransmitterId(e.target.value);
+
+})
+//FILTRO PARA PERSONAL QUE RECIBIO
+const FilterPersonalRecibido=((e:ChangeEvent<HTMLInputElement>)=>{
+  setreceiverId(e.target.value);
+
+})
+
 //IMPRIMIR EL QR
 const handlePrint = () => {
   const printWindow = window.open('', '', 'width=600,height=600');
@@ -257,37 +272,107 @@ const handlePrint = () => {
     console.error("No se pudo abrir la ventana de impresión.");
   }
 };
+
+const handlePageChange=(event:React.MouseEvent<HTMLButtonElement>|null,newPage:number)=>{
+
+  console.log("habdlePageChange",newPage)
+  setPage(newPage)
+}
   return (
     <>
       <TableContainer component={Paper}>
         <Table sx={{ minWidth: 650 }} aria-label='simple table'>
           <TableHead style={headerStyle}>
             <TableRow sx={{ '& .MuiTableCell-root': { py: (theme: { spacing: (arg0: number) => any; }) => `${theme.spacing(3.9)} !important` } }}>
-                <TableCell style={{fontFamily: 'Roboto, Arial, sans-serif',fontSize: '13px', width: '190px',color:'white' }}>Acciones </TableCell>
+                <TableCell style={{fontSize: '13px', width: '190px',color:'white',borderBottom: '1px solid rgba(224, 224, 224, 1)' }}>Acciones </TableCell>
                 <TableCell style={headeresti}> </TableCell>
-                <TableCell style={headeresti}sx={{width:'200px'}}>Usuario que envia</TableCell>
-                <TableCell style={headeresti}sx={{width:'200px'}}>Usuario que recibe </TableCell>
+                <TableCell style={headeresti}sx={{width:'200px'}}>Responsable_de_Entrega</TableCell>
+                <TableCell style={headeresti}sx={{width:'200px'}}>Responsable_de_Recepción</TableCell>
                 <TableCell style={headeresti}sx={{width:'200px'}}>Ubicacion </TableCell>
                 <TableCell style={headeresti} sx={{width:'150px'}}>Activos </TableCell>
-                <TableCell style={{fontFamily: 'Roboto, Arial, sans-serif', fontSize: '13px',color:'white'}}>Actas </TableCell>
+                <TableCell style={{fontFamily: 'Roboto, Arial, sans-serif', fontSize: '13px',color:'white',borderBottom: '1px solid rgba(224, 224, 224, 1)'}}>Actas </TableCell>
             </TableRow>
           </TableHead>
+          {/* //FILTROS */}
+          <TableHead  style={headersty}>
+            <TableRow sx={{ '& .MuiTableCell-root': { py: (theme: { spacing: (arg0: number) => any; }) => `${theme.spacing(2.9)} !important` } }}>
+                <TableCell> </TableCell>
+                <TableCell > </TableCell>
+                <TableCell >
+                <TextField
+                       variant="standard"
+                        onChange={FilterPeronalEntrega}
+                        sx={{ flex: 2, borderRadius: '10px' }}
+                        autoComplete='off'
+
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <FilterListIcon />
+                            </InputAdornment>
+                          ),
+                          style: { fontSize: '14.5px', color: 'grey'  }
+                        }}
+                      />
+                </TableCell>
+                <TableCell >
+                <TextField
+                       variant="standard"
+                        onChange={FilterPersonalRecibido}
+                        sx={{ flex: 2, borderRadius: '10px' }}
+                        autoComplete='off'
+
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <FilterListIcon />
+                            </InputAdornment>
+                          ),
+                          style: { fontSize: '14.5px', color: 'grey'  }
+                        }}
+                      /> </TableCell>
+                <TableCell >
+                      <TextField
+                       variant="standard"
+                        onChange={FilterUbicacion}
+                        sx={{ flex: 2, borderRadius: '10px' }}
+                        autoComplete='off'
+
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <FilterListIcon />
+                            </InputAdornment>
+                          ),
+                          style: { fontSize: '14.5px', color: 'grey'  }
+                        }}
+                      />
+                </TableCell>
+                <TableCell> </TableCell>
+                <TableCell > </TableCell>
+            </TableRow>
+          </TableHead>
+
            { Array.isArray(assets) && assets.length > 0 ? (
             assets.map(asset => (
           <TableBody key={asset._id}>
             <TableRow sx={{ '& .MuiTableCell-root': { py: (theme: { spacing: (arg0: number) => any; }) => `${theme.spacing(2.5)} !important` } }}>
                 <TableCell  style={{width: '150px',textAlign: 'center',fontFamily: 'Roboto, Arial, sans-serif' }}>
                     <SidebarEditDevolution providerId={asset._id}></SidebarEditDevolution>
-                    <Button sx={{ mb: 1 }} fullWidth size='small'  variant='outlined'
-                     style={{ color: '#e53935', borderRadius: '10px',width: '30px',marginBottom:'2px' }}
-                     onClick={() => handleDelete(asset._id)}>
-                       <Icon icon="mdi:delete-outline" fontSize={20} />
+                    {findPermission('ACTIVO_ELIMINAR_DEVOLUCION_ACT')?(
+                      <Button sx={{ mb: 1 }} fullWidth size='small'  variant='outlined'
+                      style={{ color: '#e53935', borderRadius: '10px',width: '30px',marginBottom:'2px' }}
+                      onClick={() => handleDelete(asset._id)}>
+                        <Icon icon="mdi:delete-outline" fontSize={20} />
                     </Button>
+                    ):(<></>)}
+
                 </TableCell>
                 <TableCell style={{textAlign: 'center',fontSize:'13.8px',fontFamily: 'Roboto, Arial, sans-serif',boxShadow: '0px 0px 2px rgba(0, 0, 0, 0.3)',width:'150px' }} sx={{ textAlign: 'center' }}>
                     <ul style={{ listStyleType: 'none', padding: 0 }}>
                       <li style={{ marginTop: '10px' }}>
-                          <Button size='small' variant='contained'
+                      {findPermission('ACTIVO_DEVOLUCION_PDF_ACT')?(
+                      <Button size='small' variant='contained'
                             style={{
                               color: '#fff', // Cambia el color del texto
                               borderRadius: '8px', // Agrega bordes redondeados
@@ -298,6 +383,8 @@ const handlePrint = () => {
                             onClick={() => generatePdf(asset._id)}
                           >Generar PDF
                           </Button>
+                    ):(<></>)}
+
                       </li>
                       {/* <li style={{ marginTop: '10px' }}>
                           <Button size='small' variant='contained'
@@ -441,7 +528,7 @@ const handlePrint = () => {
           }
         </Table>
       </TableContainer>
-      {/* <TablePagination
+      <TablePagination
           component="div"
           count={totalAssets}
           page={parseInt(page)} // Asegúrate de que page sea un número
@@ -450,10 +537,8 @@ const handlePrint = () => {
           labelRowsPerPage="Filas por página"
           rowsPerPageOptions={[1, 5, 10, 100]}
 
-            onPageChange={(event: any, newPage: string) => {
-              setPage(parseInt(newPage)); // Asegúrate de que newPage sea un número
-            }}
-        /> */}
+          onPageChange={handlePageChange}
+        />
     </>
   )
  }

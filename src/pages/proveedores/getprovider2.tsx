@@ -1,5 +1,4 @@
-import React, { useState, ChangeEvent, CSSProperties, Fragment, Ref, forwardRef, ReactElement, useContext } from 'react'
-import axios from 'axios'
+import React, { useState, ChangeEvent, CSSProperties, Fragment, Ref, forwardRef, ReactElement } from 'react'
 import {
   Button,
   TableCell,
@@ -14,32 +13,29 @@ import {
   styled,
   tooltipClasses,
   CircularProgress,
-  IconButton,
   Grid,
   TextField,
   SlideProps,
   Slide,
   tableCellClasses,
-  ListItemText,
   InputAdornment,
-  Link,
   TablePagination,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
 } from '@mui/material'
 
 //ICONOS
 import FilterListIcon from '@mui/icons-material/FilterList';
 import Icon from 'src/@core/components/icon'
-
+//CONTEXTOS
 import { useSettings } from 'src/@core/hooks/useSettings'
 import { useAsset } from 'src/context/ProviderContext'
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
 import SidebarAddSupplier from 'src/components/proveedores/addprovider';
 import SidebarEditProvider from 'src/components/proveedores/editprovider';
 import { findPermission } from 'src/components/findPermission';
-import { UIContext } from 'src/usecontext/ui';
-
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
@@ -50,12 +46,10 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
     fontSize: 14,
   },
 }));
-
 interface SidebarDeleteAssetProps {
   providerId: string;
 
 }
-
 interface informationAsset {
   asset: string;
   description: string;
@@ -72,7 +66,6 @@ interface Provider {
   informationAsset: informationAsset;
   asset: boolean;
 }
-
 interface Asset {
   _id: string;
   managerName: string;
@@ -92,10 +85,6 @@ interface state {
   isDeleted: boolean
 
 }
-
-
-
-
 const Transition = forwardRef(function Transition(
   props: SlideProps & { children?: ReactElement<any, any> },
   ref: Ref<unknown>
@@ -103,53 +92,48 @@ const Transition = forwardRef(function Transition(
   return <Slide direction='up' ref={ref} {...props} />
 })
 const AssetList: React.FC = () => {
-  const {getdata}=useContext(UIContext)
   // const [assets, setAssets] = useState<Asset[]>([])
   const [addproviderOpen, setAddproviderOpen] = useState<boolean>(false);
   const toggleAddproviderDrawer = () => setAddproviderOpen(!addproviderOpen);
-
   const [open, setOpen] = React.useState(false);
-  const [selectedRows, setSelectedRows] = useState<string[]>([]);
-
-  const [dates] = useState<string[]>([])
-
   const [addAssetOpen, setAddAssetOpen] = useState<boolean>(false)
   const toggleAddAssetDrawer = () => setAddAssetOpen(!addAssetOpen)
   const { settings } = useSettings()
   const { mode } = settings
-  const [expandedRows, setExpandedRows] = useState<string[]>([]);
-
+  const [deleteAssetId, setDeleteAssetId] = useState<string | null>(null);
 
 //LLAMANDO AL CONTEXTO
 
-let { assets,setnameSupplier,setLimit, deleteAsset,handleDeleteConfirmed,//generatenewPdf
-  stateDB,setmanagerPhone,page,setPage, limit,
+let { assets,setnameSupplier,setLimit, deleteAsset,setbusinessName,setemail,setbusinessAddress,//handleDeleteConfirmed,
+  page,setPage,limit,setmanagerPhone,
   setmanagerCi,setNIT,totalAssets} = useAsset();
 
   const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState<boolean>(false)
-  const [userIdToDelete, setUserIdToDelete] = useState<string>('')
   const [isSidebarEditOpen, setIsSidebarEditOpen] = useState(false);
+  const handleClosedial = () => {
+    // Lógica para cerrar el diálogo
+    setIsDeleteConfirmationOpen(false);
+  };
 
+  const handleClose = () => {
+    setOpen(false);
+    setIsDeleteConfirmationOpen(false);
+  };
 
   const handleDeleteCancelled = () => {
     setIsDeleteConfirmationOpen(false)
   }
- const handleDeleteConfirme =()=>{
-  handleDeleteConfirmed
- }
-
-  const handleDelete = async (id: string) => {
-    // const assetIds = [...new Set([id, ...selectedRows])].flat();
-    setUserIdToDelete(id)
-    setIsDeleteConfirmationOpen(true)
-    if(isDeleteConfirmationOpen){
-      deleteAsset(selectedRows)
-     }
-  }
-
-
-
-
+  const handleDelete = (assetId: string) => {
+    setDeleteAssetId(assetId);
+    setIsDeleteConfirmationOpen(true);
+  };
+  const handleDeleteConfirmed = async () => {
+    if (deleteAssetId) {
+      await deleteAsset(deleteAssetId);
+      handleClose();
+      setDeleteAssetId(null);
+    }
+  };
 
   const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
     <Tooltip {...props} classes={{ popper: className }} />
@@ -182,9 +166,6 @@ let { assets,setnameSupplier,setLimit, deleteAsset,handleDeleteConfirmed,//gener
   }
 
 //PAGINACION
-
-const [rowsPerPage, setRowsPerPage] = useState(10); // Asume que quieres mostrar 10 filas por página
-
 const handleChangeRowsPerPage = (
   event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
 ) => {
@@ -195,6 +176,21 @@ const handleChangeRowsPerPage = (
 //filtro para nombres
 const Filter=((e:ChangeEvent<HTMLInputElement>)=>{
   setnameSupplier(e.target.value);
+
+})
+//filtro para nombre de trabajo
+const FilterbusinessName=((e:ChangeEvent<HTMLInputElement>)=>{
+  setbusinessName(e.target.value);
+
+})
+//filtro para nombre de email
+const Filteremail=((e:ChangeEvent<HTMLInputElement>)=>{
+  setemail(e.target.value);
+
+})
+//filtro para nombre de direccion
+const FilterbusinessAddress=((e:ChangeEvent<HTMLInputElement>)=>{
+  setbusinessAddress(e.target.value);
 
 })
 //FILTRO PARA NIT
@@ -215,11 +211,7 @@ const FilterCi=((e:ChangeEvent<HTMLInputElement>)=>{
 
 })
     const limits=((e:ChangeEvent<HTMLInputElement>)=>{
-      // const limit = parseFloat(e.target.value)
       setLimit(e.target.value);
-
-      // console.log("v",value)
-
     })
 
 
@@ -259,38 +251,38 @@ const handleClickCi = (event: React.MouseEvent<HTMLElement>) => {
 const handleCloseOptionCi = () => {
   setAnchorCIl(null);
 };
-
     const bodystyle: CSSProperties = {
-
       width:'50px',
-
       fontSize:'13px',
-      // color: mode === 'light' ? 'black' : 'white',
       fontFamily: 'Roboto, Arial, sans-serif',
       boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.3)',
       height:'2px',
 
     }
 
-//IMPRIMIR EL QR
+    const handlePageChange=(event:React.MouseEvent<HTMLButtonElement>|null,newPage:number)=>{
+
+      console.log("habdlePageChange",newPage)
+      setPage(newPage)
+    }
 
   return (
     <>
     <Grid container>
     <Grid xs={7} ml={2} lg={15}>
-      {findPermission('ACTIVO_CREAR_PROVEEDOR_ACT')?(
+    {findPermission('ACTIVO_CREAR_PROVEEDOR_ACT')?(
         <Button
         style={{ textTransform: 'uppercase', minWidth: '210px', marginLeft: '-8px', float: 'left' }}
-        sx={{ mb: 2, margin: '0 720px 8px 0' }}
+        sx={{ mb: 2, margin: '14 720px 8px 0' }}
         variant='contained'
         onClick={toggleAddproviderDrawer}
         >
           registrar Proveedor
         </Button>
-       ):(<></>)}
+       ):(<></>)}
 
       <SidebarAddSupplier open={addproviderOpen} toggle={toggleAddproviderDrawer} />
-          <TextField
+          {/* <TextField
           onChange={Filter}
           label="Buscar Proveedor"
           variant="standard"
@@ -303,269 +295,46 @@ const handleCloseOptionCi = () => {
               </InputAdornment>
             ),
           }}
-        />
-
+        /> */}
       </Grid>
       </Grid>
-
-
       <TableContainer component={Paper}>
         <Table sx={{ minWidth: 650 }} aria-label='simple table'>
         <TableHead style={headerStyle}>
             <TableRow sx={{ '& .MuiTableCell-root': { py: (theme) => `${theme.spacing(2)} !important` } }}>
-              <TableCell style={headeresti} sx={{
-
-        headerClassName: 'super-app-theme--header',
-      }}>
-                Acciones
+              <TableCell style={headeresti} sx={{headerClassName: 'super-app-theme--header',}}>
+                 Acciones
               </TableCell>
               <TableCell style={headeresti}>
-             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span >Nombre</span>
-                <IconButton
-                  aria-label="more"
-                  id="long-button"
-                  aria-controls={anchorNl ? 'long-menu' : undefined}
-                  aria-expanded={anchorNl ? 'true' : undefined}
-                  aria-haspopup="true"
-                  onClick={handleClickNomb}
-                  style={{ marginLeft: 'auto' }}
-                >
-                  <MoreVertIcon />
-                </IconButton>
-              </div>
-
-
-              <Menu
-                id="long-menu"
-                MenuListProps={{
-                  'aria-labelledby': 'long-button',
-                }}
-                anchorEl={anchorNl}
-                open={Boolean(anchorNl)}
-                onClose={handleCloseOptionNomb}
-                PaperProps={{
-                  style: {
-
-                    width: '20ch',
-                  },
-                }}
-              >
-
-                    <MenuItem >
-                      <ListItemText >
-                      <TextField
-
-                       variant="standard"
-                        onChange={Filter}
-                        label="Buscar Proveedor"
-
-                        sx={{ flex: 1, borderRadius: '10px' }}
-                        autoComplete='off'
-                        InputProps={{
-                          startAdornment: (
-                            <InputAdornment position="start">
-                              <Icon icon='mdi:magnify' />
-                            </InputAdornment>
-                          ),
-                        }}
-                      />
-                      </ListItemText>
-                    </MenuItem>
-
-              </Menu>
-            </TableCell>
-            <TableCell style={headeresti}>
-            {/* <Grid style={{ display: 'flex', alignItems: 'center' }}> */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span >CI</span>
-            <IconButton
-              aria-label="more"
-              id="long-button"
-              aria-controls={anchorCIl ? 'long-menu' : undefined}
-              aria-expanded={anchorCIl ? 'true' : undefined}
-              aria-haspopup="true"
-              onClick={handleClickCi}
-              style={{ marginLeft: 'auto' }}
-            >
-              <MoreVertIcon />
-            </IconButton>
-          </div>
-
-
-              <Menu
-                id="long-menu"
-                MenuListProps={{
-                  'aria-labelledby': 'long-button',
-                }}
-                anchorEl={anchorCIl}
-                open={Boolean(anchorCIl)}
-                onClose={handleCloseOptionCi}
-                PaperProps={{
-                  style: {
-
-                    width: '20ch',
-                  },
-                }}
-              >
-
-                    <MenuItem >
-                      <ListItemText >
-                      <TextField
-
-                       variant="standard"
-                        onChange={FilterCi}
-                        label="Buscar Cedula de Identidad"
-
-                        sx={{ flex: 1, borderRadius: '10px' }}
-                        autoComplete='off'
-                        InputProps={{
-                          startAdornment: (
-                            <InputAdornment position="start">
-                              <Icon icon='mdi:magnify' />
-                            </InputAdornment>
-                          ),
-                        }}
-                      />
-                      </ListItemText>
-                    </MenuItem>
-
-              </Menu>
-            </TableCell>
-            <TableCell style={headeresti}>
-            {/* <Grid style={{ display: 'flex', alignItems: 'center' }}> */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span >celular</span>
-                <IconButton
-                  aria-label="more"
-                  id="long-button"
-                  aria-controls={anchorTl ? 'long-menu' : undefined}
-                  aria-expanded={anchorTl ? 'true' : undefined}
-                  aria-haspopup="true"
-                  onClick={handleClickPhone}
-                  style={{ marginLeft: 'auto' }}
-                >
-                  <MoreVertIcon />
-                </IconButton>
-              </div>
-
-
-              <Menu
-                id="long-menu"
-                MenuListProps={{
-                  'aria-labelledby': 'long-button',
-                }}
-                anchorEl={anchorTl}
-                open={Boolean(anchorTl)}
-                onClose={handleCloseOptionPhone}
-                PaperProps={{
-                  style: {
-
-                    width: '20ch',
-                  },
-                }}
-              >
-
-                    <MenuItem >
-                      <ListItemText >
-                      <TextField
-
-                       variant="standard"
-                        onChange={FilterPhone}
-                        label="Buscar numero de Celular"
-
-                        sx={{ flex: 1, borderRadius: '10px' }}
-                        autoComplete='off'
-                        InputProps={{
-                          startAdornment: (
-                            <InputAdornment position="start">
-                              <Icon icon='mdi:magnify' />
-                            </InputAdornment>
-                          ),
-                        }}
-                      />
-                      </ListItemText>
-                    </MenuItem>
-
-              </Menu>
-            </TableCell>
-
+                 Nombre
+              </TableCell>
+              <TableCell style={headeresti}>
+                 CI
+              </TableCell>
+              <TableCell style={headeresti}>
+                 celular
+              </TableCell>
               <TableCell style={headeresti}>
                 Direccion
               </TableCell>
-
-                <TableCell
-                  style={headeresti}
-                >
-                <span title="Correo electrónico ">{"Correo electrónico".substring(0, 9)+ "..."}</span>
-                </TableCell>
-                <TableCell style={headeresti}>
-            {/* <Grid style={{ display: 'flex', alignItems: 'center' }}> */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span >NIT</span>
-                <IconButton
-                  aria-label="more"
-                  id="long-button"
-                  aria-controls={anchorNiTl ? 'long-menu' : undefined}
-                  aria-expanded={anchorNiTl ? 'true' : undefined}
-                  aria-haspopup="true"
-                  onClick={handleClickNit}
-                  style={{ marginLeft: 'auto' }}
-                >
-                  <MoreVertIcon />
-                </IconButton>
-              </div>
-
-
-              <Menu
-                id="long-menu"
-                MenuListProps={{
-                  'aria-labelledby': 'long-button',
-                }}
-                anchorEl={anchorNiTl}
-                open={Boolean(anchorNiTl)}
-                onClose={handleCloseOptionNit}
-                PaperProps={{
-                  style: {
-
-                    width: '20ch',
-                  },
-                }}
-              >
-
-                    <MenuItem >
-                      <ListItemText >
-                      <TextField
-
-                       variant="standard"
-                        onChange={FilterNIT}
-                        label="Buscar NIT"
-
-                        sx={{ flex: 1, borderRadius: '10px' }}
-                        autoComplete='off'
-                        InputProps={{
-                          startAdornment: (
-                            <InputAdornment position="start">
-                              <Icon icon='mdi:magnify' />
-                            </InputAdornment>
-                          ),
-                        }}
-                      />
-                      </ListItemText>
-                    </MenuItem>
-
-              </Menu>
-            </TableCell>
-            <TableCell
-                  style={headeresti}
-                >
-                <span title="NEGOCIO">{"NEGOCIO".substring(0, 7) + ""}</span>
-                </TableCell>
-              <TableCell style={headeresti}>
-              Activos
+              <TableCell style={headeresti} >
+                <span title="Correo electrónico ">{"Email".substring(0, 8)+ ""}</span>
               </TableCell>
               <TableCell style={headeresti}>
-              Descripción
+                NIT
+              </TableCell>
+              <TableCell style={headeresti}>
+                <span title="NEGOCIO">{"NEGOCIO".substring(0, 7) + ""}</span>
+              </TableCell>
+              <TableCell style={headeresti}>
+                Activos
+              </TableCell>
+              <TableCell style={{
+                    fontSize: '13px',
+                    width: '50px',
+                    color:'white' ,
+                    borderBottom: '1px solid rgba(224, 224, 224, 1)'}}>
+                Descripción
               </TableCell>
 
             </TableRow>
@@ -603,7 +372,6 @@ const handleCloseOptionCi = () => {
                               <InputAdornment position="start">
                                 <FilterListIcon />
                               </InputAdornment>
-
                             ),
                             style: { fontSize: '14.5px', color: 'grey'  }
                           }}
@@ -626,8 +394,40 @@ const handleCloseOptionCi = () => {
                               }}
                             />
             </TableCell>
-            <TableCell> </TableCell>
-            <TableCell> </TableCell>
+            <TableCell>
+                   <TextField
+                        variant="standard"
+                          onChange={FilterbusinessAddress}
+                          autoComplete='off'
+                          InputProps=
+                          {{
+                            startAdornment: (
+                              <InputAdornment position="start">
+                                <FilterListIcon />
+                              </InputAdornment>
+
+                            ),
+                            style: { fontSize: '14.5px', color: 'grey'  }
+                          }}
+                        />
+            </TableCell>
+            <TableCell>
+                 <TextField
+                       variant="standard"
+                        onChange={Filteremail}
+                        autoComplete='off'
+                        InputProps=
+                        {{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <FilterListIcon />
+                            </InputAdornment>
+
+                          ),
+                          style: { fontSize: '14.5px', color: 'grey'  }
+                        }}
+                      />
+            </TableCell>
             <TableCell>
               <TextField
                        variant="standard"
@@ -645,8 +445,24 @@ const handleCloseOptionCi = () => {
                         }}
                       />
             </TableCell>
-            <TableCell >  </TableCell>
-            <TableCell> </TableCell>
+            <TableCell >
+                  <TextField
+                       variant="standard"
+                        onChange={FilterbusinessName}
+                        autoComplete='off'
+                        InputProps=
+                        {{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <FilterListIcon />
+                            </InputAdornment>
+
+                          ),
+                          style: { fontSize: '14.5px', color: 'grey'  }
+                        }}
+                      />
+               </TableCell>
+            <TableCell>  </TableCell>
             <TableCell> </TableCell>
           </TableRow>
         </TableHead>
@@ -662,7 +478,7 @@ const handleCloseOptionCi = () => {
                       boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.3)'
                   }}>
 
-                    <SidebarEditProvider providerId={asset._id}></SidebarEditProvider>
+                    <SidebarEditProvider providerId={asset._id} open={isSidebarEditOpen}toggle={()=>setIsSidebarEditOpen(!isSidebarEditOpen)}/>
                     {findPermission('ACTIVO_ELIMINAR_PROVEEDOR_ACT')?(
                      <Button
                      size="small"
@@ -673,13 +489,8 @@ const handleCloseOptionCi = () => {
                     >
                       <Icon icon="mdi:delete-outline" fontSize={18} />
                     </Button>
-                    ):(<></>)}
+                    ):(<></>)}
 
-                    {/* <Tooltip title='View'>
-                    <IconButton size='small' component={Link} sx={{ mr: 0.5 }} href={`src/pages/proveedores/preview/${asset._id}`}>
-                      <Icon icon='mdi:eye-outline' />
-                    </IconButton>
-                  </Tooltip> */}
                 </TableCell>
 
                 <TableCell style={bodystyle}>
@@ -736,9 +547,25 @@ const handleCloseOptionCi = () => {
             </TableRow>
           </TableBody>
           )
-
           }
+          <Dialog open={isDeleteConfirmationOpen} onClose={handleClose}>
+            <DialogTitle>Confirmar eliminación</DialogTitle>
 
+            <DialogContent>
+
+              <DialogContentText>
+                ¿Estás seguro que deseas eliminar este Grupo Contable?
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleDeleteCancelled} color="primary">
+                Cancelar
+              </Button>
+              <Button onClick={handleDeleteConfirmed} color="primary">
+                Eliminar
+              </Button>
+            </DialogActions>
+          </Dialog>
 
 
         </Table>
@@ -746,22 +573,14 @@ const handleCloseOptionCi = () => {
       </TableContainer>
       <TablePagination
               component="div"
-              count={5} // Asegúrate de reemplazar esto con el valor real de tu conteo de filas
-              page={parseInt(page, 10)} // Asegúrate de que page sea un número
-              rowsPerPage={parseInt(limit, 10)}
+              count={totalAssets} // Asegúrate de reemplazar esto con el valor real de tu conteo de filas
+              page={parseInt(page,10)} // Asegúrate de que page sea un número
+              rowsPerPage={parseInt(limit,10)}
               onRowsPerPageChange={handleChangeRowsPerPage}
               labelRowsPerPage="Filas por página"
-              rowsPerPageOptions={[2, 5, 50, 100]}
-                onPageChange={(event, newPage) => {
-                //   setPage(parseInt(newPage, 10)); // Asegúrate de que newPage sea un número
-                // }}
-                console.log('paramettttt', page)
-
-                // setPage(params + 1)
-                setPage(page)
-              }}
-
-            />
+              rowsPerPageOptions={[2, 5, 10, 100]}
+              onPageChange={handlePageChange}
+        />
     </>
   )
  }

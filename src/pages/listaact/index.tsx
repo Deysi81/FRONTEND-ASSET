@@ -39,6 +39,9 @@ import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { Theme } from '@mui/material/styles';
+import toast from "react-hot-toast";
+import { Warning } from '@mui/icons-material';
+
 
 import SidebarAddDesignar from 'src/components/DevolucionDeActivos/AddDevolucion'
 import SidebarAddProvider from 'src/components/EntregaDeActivos/AddEntrega'
@@ -59,6 +62,7 @@ import GetImage from 'src/components/activos/image';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import { findPermission } from 'src/components/findPermission';
+import Swal from 'sweetalert2'
 
 interface SidebarDeleteAssetProps {
   providerId: string;
@@ -246,7 +250,7 @@ handleClosedial()
     fontFamily: 'Roboto, Arial, sans-serif'
   }
   const headeresti: CSSProperties = {
-    fontFamily: 'Roboto, Arial, sans-serif',
+    // fontFamily: 'Roboto, Arial, sans-serif',
     fontSize: '13px',
     width: '50px',
     color:'white' ,
@@ -325,10 +329,27 @@ const FilterCode=((e:ChangeEvent<HTMLInputElement>)=>{
         handleClickOpenQR()
 
 
-      } catch (error:any) {
-        alert(error.response?.data.message);
-        handleClickOpenQR()
+      }catch (error: any) {
+       if (error.response) {
+        // Error en la respuesta del servidor
+        const errorMessage = error.response.data.message || 'Error en el servidor';
+        // toast.error(`HUBO UN ERROR AL GENERAR EL PDF:\n${errorMessage}`);
+        Swal.fire({
+          icon: "error",
+          title: "Oops...",
+          text: `HUBO UN ERROR AL GENERAR EL QR:\n${errorMessage}`,
+          // footer: '<a href="#">Why do I have this issue?</a>'
+        });
 
+        } else if (error.request) {
+          // Falta de respuesta del servidor
+          toast.error('No se recibió respuesta del servidor. Verifica tu conexión a Internet.');
+        } else {
+          // Error en la solicitud
+          toast.error('Error al realizar la solicitud. Por favor, inténtalo de nuevo.');
+        }
+
+        // handleClickOpenQR();
       }
     };
 
@@ -356,7 +377,8 @@ const FilterCode=((e:ChangeEvent<HTMLInputElement>)=>{
           // Calcular el tamaño del código QR en función del espacio disponible en la página
           const qrWidth = pageSize.width - 0; // Deja un margen de 1 cm
           const qrHeight = pageSize.height - 1; // Deja un margen de 1 cm
-          const textPositionX = 1; // Posición X del texto
+         //const textPositionX: string = (1).toString();
+           const textPositionX = 1; // Posición X del texto
           const textPositionY = 0.5; // Posición Y del texto
 
           // Centrar el código QR en la página
@@ -498,7 +520,11 @@ const FilterState=(value: string) => {
   handleClose();
 
 }
+const handlePageChange=(event:React.MouseEvent<HTMLButtonElement>|null,newPage:number)=>{
 
+  console.log("habdlePageChange",newPage)
+  setPage(newPage)
+}
 
   return (
     <>
@@ -610,7 +636,7 @@ const FilterState=(value: string) => {
                 <TableCell style={headeresti}> Nombre</TableCell>
                 <TableCell style={headeresti}> Ubicación</TableCell>
                 <TableCell style={headeresti}> Precio </TableCell>
-                <TableCell style={headeresti}> Categoria</TableCell>
+                <TableCell style={{fontSize: '13px',width: '50px',color:'white' ,textAlign: 'center',borderBottom: '1px solid rgba(224, 224, 224, 1)'}}> Categoria</TableCell>
            </TableRow>
           </TableHead>
 {/* FILTROS */}
@@ -740,49 +766,36 @@ const FilterState=(value: string) => {
                         <div>
 
                       <SidebarEditAsset providerId={asset._id} selectedEdit={selectedRows} open={isSidebarEditOpen} setSelectedRows={setSelectedRows} toggle={()=>setIsSidebarEditOpen(!isSidebarEditOpen)}/>
+                      {findPermission('ACTIVO_ELIMINAR_PERMISO_ACT')?(
+                              <Button
+                              sx={{ mb: 1 }}
+                                fullWidth
+                                size='small'
+                                style={{ color: '#e53935', borderRadius: '10px',width: '65px',marginBottom:'13px' }}
+                                variant='outlined'
+                                onClick={() => {
+                                  if (selectedRows.length === 0) {
+                                  // Si no hay elementos seleccionados, selecciona el activo automáticamente
+                                  setSelectedRows([asset._id]);
+                                  }
+                                  handleDelete(asset._id);
+                                  }}
+                                //onClick={() => handleDelete(asset._id) }
+                              >
+                                <Icon icon='mdi:delete-outline' fontSize={19} />
+                              </Button>
+                          ):(<></>)}
 
-                          <Button
-                          sx={{ mb: 1 }}
-                            fullWidth
-                            size='small'
-                            style={{ color: '#e53935', borderRadius: '10px',width: '65px',marginBottom:'13px' }}
-                            variant='outlined'
-                            onClick={() => {
-                              if (selectedRows.length === 0) {
-                              // Si no hay elementos seleccionados, selecciona el activo automáticamente
-                              setSelectedRows([asset._id]);
-                              }
-                              handleDelete(asset._id);
-                              }}
-                            //onClick={() => handleDelete(asset._id) }
-                          >
-                            <Icon icon='mdi:delete-outline' fontSize={19} />
-                          </Button>
                           </div>
-                      {/* <Dialog  onClose={handleCloseQR} aria-labelledby='customized-dialog-title' open={openQR} maxWidth="md" > */}
-                            <Dialog open={isDeleteConfirmationOpen} onClose={handleClosedial}>
-                              <DialogTitle>Confirmar eliminación</DialogTitle>
-                              <DialogContent>
-                                <DialogContentText>
-                                  ¿Estás seguro que deseas eliminar este Activo?
-                                </DialogContentText>
-                              </DialogContent>
-                              <DialogActions>
-                                <Button onClick={handleDeleteCancelled} color="primary">
-                                  Cancelar
-                                </Button>
-                                <Button onClick={() => handleDeleteConfirme()} color="primary">
-                                  Eliminar
-                                </Button>
-                              </DialogActions>
-                            </Dialog>
+
              </TableCell>
              <TableCell style={{ width: '30px' }} sx={{ textAlign: 'center' }}>
                 <ul style={{ listStyleType: 'none', padding: 0, marginBottom: '-1px' }}>
                     <div>
                         {asset.assigned ? (
                           <li>
-                          <Button size='small'
+                            {findPermission('ACTIVO_CREAR_DEVOLUCION_ACT')?(
+                              <Button size='small'
                               style={{ border: '1px solid #ccc', borderRadius: '5px', marginBottom: '-1px', width: '120px', height: '30px',marginTop:'-20px' }}
                               onClick={() => {
                               if (selectedRows.length === 0) {
@@ -791,10 +804,15 @@ const FilterState=(value: string) => {
                               }
                               toggleAddDesignarDrawer();
                               }}> Devolución</Button>
+                          ):(<></>)}
+
+
                              <SidebarAddDesignar selectedDevolution={selectedRows} open={addDesignarOpen} setSelectedRows={setSelectedRows} toggle={toggleAddDesignarDrawer} />
                          </li>
                            ) : (
-                         <li> <Button  size='small'
+                         <li>
+                          {findPermission('ACTIVO_CREAR_ENTREGA_ACT')?(
+                              <Button  size='small'
                               style={{ border: '1px solid #ccc', borderRadius: '5px', marginBottom: '-1px', width: '120px', height: '30px',marginTop:'-20px' }}
                               onClick={() => {
                               if (selectedRows.length === 0) {
@@ -803,37 +821,45 @@ const FilterState=(value: string) => {
                               }
                               toggleAddAsignarDrawer();
                               }} > Asignar</Button>
+                          ):(<></>)}
                               <SidebarAddProvider assetId={asset._id}   selectedAsignar={selectedRows} setSelectedRows={setSelectedRows} open={addAsignarOpen} toggle={toggleAddAsignarDrawer} />
                          </li> )}
                     </div>
 
                          <li style={{ marginTop: '10px' }}>
+                         {findPermission('ACTIVO_VER_PDF')?(
                               <Button size='small' variant='contained'
-                                style={{
-                                  color: '#fff', // Cambia el color del texto
-                                  borderRadius: '8px', // Agrega bordes redondeados
-                                  width: '120px',
-                                  height: '24px', // Ajusta la altura
-                                  fontSize: '12px',
-                                  marginTop:'-17px' // Cambia el tamaño del texto
+                              style={{
+                                color: '#fff', // Cambia el color del texto
+                                borderRadius: '8px', // Agrega bordes redondeados
+                                width: '120px',
+                                height: '24px', // Ajusta la altura
+                                fontSize: '12px',
+                                marginTop:'-17px' // Cambia el tamaño del texto
 
-                                }}
-                            onClick={() => generatePdf(asset._id)}
-                          >Generar PDF</Button>
+                              }}
+                          onClick={() => generatePdf(asset._id)}
+                        >Generar PDF</Button>
+                          ):(<></>)}
+
                         </li>
                         <li style={{ marginTop: '10px' }}>
+                        {findPermission('ACTIVO_VER_QR')?(
                               <Button size='small' variant='contained'
-                                style={{
-                                  color: '#fff', // Cambia el color del texto
-                                  borderRadius: '8px', // Agrega bordes redondeados
-                                  width: '120px',
-                                  height: '24px', // Ajusta la altura
-                                  fontSize: '12px', // Cambia el tamaño del texto
-                                  marginTop:'-20px'
-                                }}
-                                onClick={() => generateQR(asset._id)}
-                              > Generar Qr </Button>
+                              style={{
+                                color: '#fff', // Cambia el color del texto
+                                borderRadius: '8px', // Agrega bordes redondeados
+                                width: '120px',
+                                height: '24px', // Ajusta la altura
+                                fontSize: '12px', // Cambia el tamaño del texto
+                                marginTop:'-20px'
+                              }}
+                              onClick={() => generateQR(asset._id)}
+                            > Generar Qr </Button>
+                          ):(<></>)}
+
                         </li>
+
                 </ul>
              </TableCell>
              <TableCell style={{fontSize: '13px',fontWeight: 'bold', width: '10px', color:'white'  }} sx={{ textAlign: 'center' }}>
@@ -885,6 +911,7 @@ const FilterState=(value: string) => {
             <TableCell style={{ width: '50px' }} sx={{ textAlign: 'center' }}><GetImage id={asset.file}/>  </TableCell>
             <TableCell style={{ width: '50px', textAlign: 'center' }}>
                      {asset?.informationCountable?.documentPdf? (
+
                         <button
                           onClick={() => {
                             const pdfWindow = window.open('', '_blank');
@@ -960,6 +987,24 @@ const FilterState=(value: string) => {
      )}
    </TableBody>
      )}
+       {/* <Dialog  onClose={handleCloseQR} aria-labelledby='customized-dialog-title' open={openQR} maxWidth="md" > */}
+       <Dialog open={isDeleteConfirmationOpen} onClose={handleClosedial}>
+                              <DialogTitle>Confirmar eliminación</DialogTitle>
+                              <DialogContent>
+                              <Warning style={{ color: 'red' }} onClick={() => setIsDeleteConfirmationOpen(true)} />
+                                <DialogContentText>
+                                  ¿Estás seguro que deseas eliminar este Activo?
+                                </DialogContentText>
+                              </DialogContent>
+                              <DialogActions>
+                                <Button onClick={handleDeleteCancelled} color="primary">
+                                  Cancelar
+                                </Button>
+                                <Button onClick={() => handleDeleteConfirme()} color="primary">
+                                  Eliminar
+                                </Button>
+                              </DialogActions>
+                            </Dialog>
   </Table>
   </TableContainer>
   <Stack spacing={2}>
@@ -971,9 +1016,7 @@ const FilterState=(value: string) => {
           onRowsPerPageChange={handleChangeRowsPerPage}
           labelRowsPerPage="Filas por página"
           rowsPerPageOptions={[2, 5, 10, 100]}
-            onPageChange={(event, newPage) => {
-              setPage(parseInt(newPage, 10)); // Asegúrate de que newPage sea un número
-            }}
+          onPageChange={handlePageChange}
         />
       </Stack>
         {/* <Stack spacing={2}>

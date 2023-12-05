@@ -17,7 +17,8 @@ import {
   Box,
   Button,
   TextField,
-  Typography
+  Typography,
+  CardContent
 } from '@mui/material'
 import { Controller, useForm } from 'react-hook-form'
 import { useSettings } from 'src/@core/hooks/useSettings'
@@ -194,8 +195,10 @@ const AssetList: React.FC = () => {
 
     color:'white',
     textAlign: 'center',
-    fontFamily: 'Roboto, Arial, sans-serif',
-    boxShadow: '0px 2px 4px rgba(0, 0, 0, 0)', borderRight: '1px solid rgba(224, 224, 224, 1)'
+    // fontFamily: 'Roboto, Arial, sans-serif',
+    boxShadow: '0px 2px 4px rgba(0, 0, 0, 0)', borderRight: '1px solid rgba(224, 224, 224, 1)',
+    borderBottom: '1px solid rgba(224, 224, 224, 1)',
+
   }
   return (
     <>
@@ -210,106 +213,89 @@ const AssetList: React.FC = () => {
           ):(<></>)}
 
 <br /><br />
-  </Grid>
-  <Grid item xs={12} sm={3}>
-            <Typography variant='body2' gutterBottom
-            style={{ textAlign: 'center',
-            //color: mode === 'light' ? 'black' : 'white'
-          } }
-            >
-              FECHA INICIAL
-            </Typography>
-            <Controller
-              name='dateInitial'
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  type='date' // Cambiar a 'date'
-                  fullWidth
-                  value={values.dateInitial}
-                  onChange={e => handleChange('dateInitial')(e.target.value)}
-                  autoComplete='off'
-                />
-              )}
-            />
-          </Grid>
-          <Grid item xs={12} sm={3}>
-          <Typography variant='body2' gutterBottom style={{ textAlign: 'center',
+</Grid>
+
+<Grid item xs={12} sm={5} lg={3}>
+          <Typography variant='body2' gutterBottom
+          style={{ textAlign: 'center',fontWeight: 'bold'
           //color: mode === 'light' ? 'black' : 'white'
-           } }>
-              FECHA ACTUAL
-            </Typography>
-            <Controller
-              name='dateCurrent'
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  type='date' // Cambiar a 'date'
-                  value={values.dateCurrent}
-                  fullWidth
-                  onChange={e => handleChange('dateCurrent')(e.target.value)}
-                  autoComplete='off'
-                />
-              )}
-            />
-          </Grid>
+        } }
+          >
+            FECHA INICIAL
+          </Typography>
+          <Controller
+            name='dateInitial'
+            control={control}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                type='date' // Cambiar a 'date'
+                fullWidth
+                value={values.dateInitial}
+                onChange={e => handleChange('dateInitial')(e.target.value)}
+                autoComplete='off'
+              />
+            )}
+          />
+        </Grid>
+        <Grid item xs={12} sm={5} lg={3}>
+        <Typography variant='body2' gutterBottom style={{ textAlign: 'center',fontWeight: 'bold'
+        //color: mode === 'light' ? 'black' : 'white'
+         } }>
+            FECHA ACTUAL
+          </Typography>
+          <Controller
+            name='dateCurrent'
+            control={control}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                type='date' // Cambiar a 'date'
+                value={values.dateCurrent}
+                fullWidth
+                onChange={e => handleChange('dateCurrent')(e.target.value)}
+                autoComplete='off'
+              />
+            )}
+          />
+        </Grid>
 
+        </Grid>
+<br />
+    <Grid container spacing={2} mb={0}>
+      <Grid xs={7} ml={2} lg={15}>
 
-<Grid container spacing={3}></Grid>
-          <Grid item xs={12}>
-            <Box
-              sx={{
-                gap: 5,
-                display: 'flex',
-                flexWrap: 'wrap',
-                alignItems: 'center',
-                justifyContent: 'space-between'
-              }}
-            >
-              <Grid container spacing={2}>
-                <Grid item xs={6} sm={5} md={3.1}>
                 {findPermission('ACTIVO_OBTENER_UFVS_ACT')?(
                   <Button onClick={()=>handleFilterAndPost()} sx={{ mb: 2 ,width:'201px'}}
                   variant='contained'>
                    Calcular UFV
                  </Button>
                 ):(<></>)}
-
-                </Grid>
-                <Grid item xs={6} sm={5} md={3.1}>
+                  {'  '}
                 {findPermission('ACTIVO_OBTENER_UFVS_ACT')?(
                   <Button onClick={()=>fetchData()} sx={{ mb: 2 ,width:'201px'}}
                   variant='contained'>
                    Restaurar valores
                  </Button>
                 ):(<></>)}
+      </Grid>
+   </Grid>
 
-                </Grid>
-              </Grid>
-            </Box>
-          </Grid>
-          </Grid>
-
-      <DatePickerWrapper>
-
-      </DatePickerWrapper>
       <TableContainer component={Paper} style={{ marginTop: '10px' }}>
         <Table sx={{ minWidth: 650 }} aria-label='simple table'>
           <TableHead style={headerStyle}>
             <TableRow sx={{ '& .MuiTableCell-root': { py: theme => `${theme.spacing(2.5)} !important` } }}>
               <TableCell style={headeresti}  sx={{width:'8.5rem'}}>
-                NOMBRE DEL ACTIVO
+                NOMBRE_DEL_ACTIVO
               </TableCell>
               <TableCell style={headeresti} sx={{width:'8.5rem'}}>
-                FECHA DE ADQUISICIÓN
+                FECHA_DE_ADQUISICIÓN
               </TableCell>
               <TableCell style={headeresti}>
-                UFV INICIAL
+                UFV_INICIAL
               </TableCell>
               <TableCell style={headeresti}>
-                UFV FINAL
+                UFV_FINAL
               </TableCell>
               <TableCell style={headeresti}>
                 DEPRECIACIÓN
@@ -317,7 +303,7 @@ const AssetList: React.FC = () => {
               <TableCell style={headeresti}>
                 PRECIO
               </TableCell>
-              <TableCell style={headeresti}>
+              <TableCell style={{ fontSize: '13.9px',color:'white',textAlign: 'center',boxShadow: '0px 2px 4px rgba(0, 0, 0, 0)',borderBottom: '1px solid rgba(224, 224, 224, 1)',}}>
                 DIFERENCIA
               </TableCell>
 

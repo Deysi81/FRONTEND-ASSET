@@ -8,7 +8,7 @@ import TimelineSeparator from '@mui/lab/TimelineSeparator';
 import TimelineConnector from '@mui/lab/TimelineConnector';
 import TimelineContent from '@mui/lab/TimelineContent';
 import TimelineDot from '@mui/lab/TimelineDot';
-import { Typography, Button, CircularProgress } from '@mui/material';
+import { Typography, Button, CircularProgress, Card, CardContent } from '@mui/material';
 import { useAuthContext } from "src/context/AuthContext";
 
 
@@ -49,12 +49,15 @@ const handleLoadMore = () => {
 
   return (
     <div>
-      <Typography variant="h3" style={{
+      <Card>
+
+          <CardContent>
+          <Typography variant="h3" style={{
               textAlign: 'center',
               textTransform: 'uppercase',
               marginBottom: '20px', // Agregar margen inferior
               fontSize:'30px',
-              color:'gray', // Agregar un fondo degradado
+              // color:'white', // Agregar un fondo degradado
               WebkitBackgroundClip: 'text', // Hacer que el fondo se aplique al texto
               textShadow: '2px 2px 4px rgba(0, 0, 0, 0.3)',
             }}>
@@ -92,6 +95,9 @@ const handleLoadMore = () => {
         <CircularProgress onClick={handleLoadMore} />
       )}
     </div>
+
+          </CardContent>
+        </Card>
 
     </div>
   );
